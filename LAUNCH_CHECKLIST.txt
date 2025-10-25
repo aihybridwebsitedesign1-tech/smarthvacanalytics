@@ -1,0 +1,263 @@
+╔════════════════════════════════════════════════════════════════╗
+║                    PRODUCTION LAUNCH CHECKLIST                 ║
+║                    SmartHVACAnalytics SaaS                     ║
+╚════════════════════════════════════════════════════════════════╝
+
+Print this out and check off each item as you complete it!
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 1: DOMAIN SETUP (10 minutes)                            │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] Purchase custom domain (if needed)
+    Domain: _______________________
+
+[ ] Log into domain registrar
+
+[ ] Access Bolt.new project settings
+
+[ ] Add custom domain in Bolt.new
+
+[ ] Copy DNS records from Bolt.new:
+    Type: ________  Name: ________  Value: ________________
+
+[ ] Add DNS records at registrar
+
+[ ] Wait for DNS propagation (15-60 min)
+
+[ ] Verify domain loads with HTTPS
+    Test: https://________________________
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 2: STRIPE SETUP (15 minutes)                            │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] Log into Stripe Dashboard
+
+[ ] Activate Stripe account (if needed)
+
+[ ] Switch to LIVE MODE (toggle top-right)
+
+[ ] Create Product 1: Starter Plan
+    Price: $49/month
+    Price ID: price_________________________
+
+[ ] Create Product 2: Growth Plan
+    Price: $99/month
+    Price ID: price_________________________
+
+[ ] Create Product 3: Pro Plan
+    Price: $199/month
+    Price ID: price_________________________
+
+[ ] Get Publishable Key
+    pk_live_____________________________________
+
+[ ] Get Secret Key
+    sk_live_____________________________________
+
+[ ] Create Webhook Endpoint
+    URL: https://________________________/api/webhooks
+    Events: checkout.session.completed ✓
+            customer.subscription.updated ✓
+            customer.subscription.deleted ✓
+            invoice.payment_failed ✓
+
+[ ] Get Webhook Signing Secret
+    whsec_______________________________________
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 3: ENVIRONMENT VARIABLES (5 minutes)                    │
+└────────────────────────────────────────────────────────────────┘
+
+Update .env file with production values:
+
+[ ] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    Old: pk_test_...
+    New: pk_live_________________________________
+
+[ ] STRIPE_SECRET_KEY
+    Old: sk_test_...
+    New: sk_live_________________________________
+
+[ ] STRIPE_WEBHOOK_SECRET
+    Old: whsec_... (test)
+    New: whsec_________________________________
+
+[ ] NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID
+    New: price_________________________________
+
+[ ] NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID
+    New: price_________________________________
+
+[ ] NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
+    New: price_________________________________
+
+[ ] NEXT_PUBLIC_APP_URL
+    New: https://________________________________
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 4: TESTING (10 minutes)                                 │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] Visit custom domain - loads correctly
+
+[ ] HTTPS working (green lock icon)
+
+[ ] Create test account with Growth plan
+    Email: ________________________
+
+[ ] Complete Stripe checkout
+    Use test card: 4242 4242 4242 4242
+
+[ ] Redirect to dashboard successful
+
+[ ] No billing warnings appear
+
+[ ] Renewal date shows correctly
+
+[ ] Check Stripe Dashboard
+    - Payment received ✓
+    - Webhook event successful (200 OK) ✓
+
+[ ] Test Settings page
+
+[ ] Click "Manage Subscription" - portal loads
+
+[ ] Test all major pages load
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 5: LEGAL & POLISH (5 minutes)                          │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] Update contact email in Terms page
+    support@________________________________
+
+[ ] Update contact email in Privacy page
+    privacy@________________________________
+
+[ ] Update business address (if applicable)
+    Address: ________________________________
+            ________________________________
+
+[ ] Test legal page links in footer
+
+[ ] Review pricing page for accuracy
+
+[ ] Check all navigation links work
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 6: FINAL CHECKS                                         │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] All environment variables in production mode
+
+[ ] No test keys in .env
+
+[ ] Stripe webhook pointing to custom domain
+
+[ ] Database has no test data (or reset if needed)
+
+[ ] Error monitoring set up (optional)
+
+[ ] Analytics tracking installed (optional)
+
+[ ] Support email configured
+
+[ ] Backup plan ready
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ PHASE 7: GO LIVE! 🚀                                          │
+└────────────────────────────────────────────────────────────────┘
+
+[ ] Take a deep breath
+
+[ ] Double-check everything above
+
+[ ] Announce on social media
+
+[ ] Share with email list
+
+[ ] Post to communities:
+    [ ] Product Hunt
+    [ ] Reddit r/SaaS
+    [ ] HVAC forums
+    [ ] Twitter/LinkedIn
+
+[ ] Monitor for first signup
+
+[ ] Celebrate first customer! 🎉
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ POST-LAUNCH MONITORING                                        │
+└────────────────────────────────────────────────────────────────┘
+
+Day 1:
+[ ] Check for new signups
+[ ] Monitor error logs
+[ ] Watch Stripe dashboard
+[ ] Respond to any support requests
+
+Week 1:
+[ ] Review signup metrics
+[ ] Check trial conversion rate
+[ ] Analyze user behavior
+[ ] Collect feedback
+
+Month 1:
+[ ] Calculate MRR
+[ ] Measure churn rate
+[ ] Plan feature updates
+[ ] Scale marketing
+
+
+╔════════════════════════════════════════════════════════════════╗
+║                         EMERGENCY CONTACTS                      ║
+╠════════════════════════════════════════════════════════════════╣
+║ Stripe Dashboard:  https://dashboard.stripe.com                ║
+║ Stripe Support:    https://support.stripe.com                  ║
+║ Supabase Dashboard: https://app.supabase.com                   ║
+║ DNS Checker:       https://whatsmydns.net                      ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════════╗
+║                      QUICK TROUBLESHOOTING                      ║
+╠════════════════════════════════════════════════════════════════╣
+║ Domain not loading?     → Wait 30-60 min, check DNS records    ║
+║ Stripe checkout fails?  → Verify all keys are LIVE mode        ║
+║ Webhook failing?        → Check URL matches custom domain      ║
+║ Trial warnings showing? → Manually activate via SQL            ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+           _______________________________________________
+          |                                               |
+          |     🎉 READY TO LAUNCH YOUR SAAS! 🎉         |
+          |                                               |
+          |  You've built something amazing. Now go      |
+          |  share it with the world!                    |
+          |                                               |
+          |  Questions? See QUICK_PRODUCTION_SETUP.md    |
+          |                                               |
+          |         Good luck! You've got this! 💪       |
+          |_______________________________________________|
+
+
+Launch Date: ____/____/________    First Customer: ____/____/________
+
+Notes:
+_________________________________________________________________
+
+_________________________________________________________________
+
+_________________________________________________________________
+
+_________________________________________________________________
