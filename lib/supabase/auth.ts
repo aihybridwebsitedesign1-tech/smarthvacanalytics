@@ -1,8 +1,7 @@
-import { Bolt Database } from './client';
+import { supabase } from './client';
 
 export async function signUp(email: string, password: string, companyName: string, technicianCount: number, planTier: string) {
-  // Sign up the user with metadata
-  // The database trigger will automatically create the profile
+  // Sign up the user with metadata - trigger will create the profile automatically
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -10,6 +9,7 @@ export async function signUp(email: string, password: string, companyName: strin
       data: {
         company_name: companyName,
         plan_tier: planTier,
+        technician_count: technicianCount,
       }
     }
   });
@@ -17,24 +17,8 @@ export async function signUp(email: string, password: string, companyName: strin
   if (authError) throw authError;
   if (!authData.user) throw new Error('No user returned from signup');
 
-  // Wait a moment for the trigger to create the profile
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Update the profile with full details
-  const client: any = Bolt Database;
-  const { error: profileError } = await client.from('profiles').update({
-    company_name: companyName,
-    technician_count: technicianCount,
-    plan_tier: planTier,
-    demo_mode: true,
-    user_role: 'owner',
-  }).eq('id', authData.user.id);
-
-  if (profileError) {
-    console.error('Profile update error:', profileError);
-    // Don't throw - profile was created by trigger, just log the update error
-  }
-
+  // Profile is created automatically by database trigger
+  // No need to update - just ensure session is established
   await supabase.auth.getSession();
 
   return authData;
@@ -62,7 +46,7 @@ export async function getCurrentUser() {
 }
 
 export async function getProfile(userId: string) {
-  const { data, error } = await Bolt Database
+  const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', userId)
