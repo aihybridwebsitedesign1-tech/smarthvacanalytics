@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { Bolt Database } from './client';
 
 export async function signUp(email: string, password: string, companyName: string, technicianCount: number, planTier: string) {
   // Sign up the user with metadata
@@ -21,7 +21,7 @@ export async function signUp(email: string, password: string, companyName: strin
   await new Promise(resolve => setTimeout(resolve, 500));
 
   // Update the profile with full details
-  const client: any = supabase;
+  const client: any = Bolt Database;
   const { error: profileError } = await client.from('profiles').update({
     company_name: companyName,
     technician_count: technicianCount,
@@ -62,7 +62,7 @@ export async function getCurrentUser() {
 }
 
 export async function getProfile(userId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await Bolt Database
     .from('profiles')
     .select('*')
     .eq('id', userId)
