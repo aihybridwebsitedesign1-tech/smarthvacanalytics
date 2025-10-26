@@ -17,9 +17,18 @@ export async function signUp(email: string, password: string, companyName: strin
   if (authError) throw authError;
   if (!authData.user) throw new Error('No user returned from signup');
 
-  // Profile is created automatically by database trigger
-  // No need to update - just ensure session is established
-  await supabase.auth.getSession();
+  // Wait for session to be fully established
+  let retries = 0;
+  while (retries < 10) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session) {
+      // Session is ready - wait one more second for RLS to be fully active
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+    retries++;
+  }
 
   return authData;
 }
