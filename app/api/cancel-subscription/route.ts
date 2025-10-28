@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe-server';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
   try {
@@ -96,6 +96,18 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured' },
+        { status: 500 }
+      );
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-09-30.clover',
+      typescript: true,
+    });
 
     const updatedSubscription = await stripe.subscriptions.update(
       profile.stripe_subscription_id,
