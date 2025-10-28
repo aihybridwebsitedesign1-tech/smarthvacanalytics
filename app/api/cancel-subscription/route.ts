@@ -2,87 +2,109 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
+function validateEnvironment() {
+  const errors: string[] = [];
+
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    errors.push('NEXT_PUBLIC_SUPABASE_URL is not configured');
+  }
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    errors.push('SUPABASE_SERVICE_ROLE_KEY is not configured');
+  }
+
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured');
+  }
+
+  return errors;
+}
+
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    const envErrors = validateEnvironment();
+    if (envErrors.length > 0) {
+      console.error('[Cancel Subscription] Environment validation failed:', envErrors);
+      return NextResponse.json(
+        { error: 'Service is not properly configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
     const { userId } = await req.json();
 
     if (!userId) {
+      console.warn('[Cancel Subscription] Request missing userId');
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-    if (!supabaseUrl) {
-      console.error('[Cancel Subscription] Missing NEXT_PUBLIC_SUPABASE_URL');
+    if (!supabaseServiceKey) {
+      console.error('[Cancel Subscription] CRITICAL: Service role key is not configured');
       return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
+        { error: 'Service temporarily unavailable. Please contact support.' },
         { status: 500 }
       );
     }
 
-    if (!supabaseAnonKey) {
-      console.error('[Cancel Subscription] Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 500 }
-      );
-    }
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
 
-    const supabaseKey = supabaseServiceKey || supabaseAnonKey;
-
-    if (!supabaseKey) {
-      console.error('[Cancel Subscription] No valid Supabase key available');
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 500 }
-      );
-    }
-
-    let supabase;
-    try {
-      supabase = createClient(supabaseUrl, supabaseKey, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      });
-    } catch (createError: any) {
-      console.error('[Cancel Subscription] Failed to create Supabase client:', createError);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 500 }
-      );
-    }
-
-    console.log('[Cancel Subscription] Fetching profile for userId:', userId);
-    console.log('[Cancel Subscription] Using service role key:', !!supabaseServiceKey);
+    console.log('[Cancel Subscription] Request initiated:', {
+      userId,
+      timestamp: new Date().toISOString(),
+      hasServiceRoleKey: true,
+    });
 
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, stripe_subscription_id, billing_status')
+      .select('stripe_customer_id, stripe_subscription_id, billing_status, account_status')
       .eq('id', userId)
       .maybeSingle();
 
     if (fetchError) {
-      console.error('[Cancel Subscription] Profile fetch error:', {
-        message: fetchError.message,
-        code: fetchError.code,
-        details: fetchError.details,
-        hint: fetchError.hint,
+      console.error('[Cancel Subscription] Database query failed:', {
+        userId,
+        error: {
+          message: fetchError.message,
+          code: fetchError.code,
+          details: fetchError.details,
+          hint: fetchError.hint,
+        },
+        duration: Date.now() - startTime,
       });
 
-      const isAuthError = fetchError.message?.toLowerCase().includes('api') ||
-                          fetchError.message?.toLowerCase().includes('key') ||
-                          fetchError.message?.toLowerCase().includes('jwt');
+      const errorMsg = fetchError.message?.toLowerCase() || '';
+      const isPermissionError = errorMsg.includes('permission') ||
+                                errorMsg.includes('policy') ||
+                                errorMsg.includes('rls');
+      const isAuthError = errorMsg.includes('api') ||
+                          errorMsg.includes('key') ||
+                          errorMsg.includes('jwt');
+
+      if (isPermissionError) {
+        console.error('[Cancel Subscription] RLS policy error - service role key may not have proper permissions');
+        return NextResponse.json(
+          { error: 'Unable to access your account. Please contact support.' },
+          { status: 500 }
+        );
+      }
 
       if (isAuthError) {
+        console.error('[Cancel Subscription] Authentication error - check environment configuration');
         return NextResponse.json(
-          { error: 'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.' },
+          { error: 'Service authentication failed. Please contact support.' },
           { status: 500 }
         );
       }
@@ -101,15 +123,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('[Cancel Subscription] Profile found:', {
+    console.log('[Cancel Subscription] Profile retrieved successfully:', {
       userId,
       hasStripeCustomer: !!profile.stripe_customer_id,
       hasStripeSubscription: !!profile.stripe_subscription_id,
-      billingStatus: profile.billing_status
+      billingStatus: profile.billing_status,
+      accountStatus: profile.account_status,
+      queryDuration: Date.now() - startTime,
     });
 
     if (profile.billing_status === 'trialing' && !profile.stripe_customer_id) {
-      console.log('[Cancel Subscription] Canceling free trial for user:', userId);
+      console.log('[Cancel Subscription] Processing free trial cancellation:', { userId });
 
       const { data: updateData, error: updateError } = await supabase
         .from('profiles')
@@ -123,10 +147,14 @@ export async function POST(req: NextRequest) {
         .select();
 
       if (updateError) {
-        console.error('[Cancel Subscription] Failed to update profile:', {
-          message: updateError.message,
-          code: updateError.code,
-          details: updateError.details,
+        console.error('[Cancel Subscription] Failed to update profile for trial cancellation:', {
+          userId,
+          error: {
+            message: updateError.message,
+            code: updateError.code,
+            details: updateError.details,
+          },
+          duration: Date.now() - startTime,
         });
         return NextResponse.json(
           { error: 'Unable to cancel your trial. Please contact support if this persists.' },
@@ -134,7 +162,11 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      console.log('[Cancel Subscription] Trial cancelled successfully:', updateData);
+      console.log('[Cancel Subscription] Free trial cancelled successfully:', {
+        userId,
+        duration: Date.now() - startTime,
+        updatedFields: updateData,
+      });
 
       return NextResponse.json({
         success: true,
@@ -192,6 +224,9 @@ export async function POST(req: NextRequest) {
       message: error.message,
       stack: error.stack,
       name: error.name,
+      type: error.type,
+      duration: Date.now() - startTime,
+      timestamp: new Date().toISOString(),
     });
 
     const isStripeError = error.type?.startsWith('Stripe');
