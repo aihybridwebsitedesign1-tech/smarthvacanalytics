@@ -18,32 +18,49 @@ export async function POST(req: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl) {
-      console.error('Missing Supabase URL');
+      console.error('[Cancel Subscription] Missing NEXT_PUBLIC_SUPABASE_URL');
       return NextResponse.json(
-        { error: 'Server configuration error' },
+        { error: 'Service temporarily unavailable. Please try again later.' },
         { status: 500 }
       );
     }
 
-    // Use service role key if available, otherwise anon key
+    if (!supabaseAnonKey) {
+      console.error('[Cancel Subscription] Missing NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 500 }
+      );
+    }
+
     const supabaseKey = supabaseServiceKey || supabaseAnonKey;
 
     if (!supabaseKey) {
-      console.error('Missing Supabase keys');
+      console.error('[Cancel Subscription] No valid Supabase key available');
       return NextResponse.json(
-        { error: 'Server configuration error' },
+        { error: 'Service temporarily unavailable. Please try again later.' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
+    let supabase;
+    try {
+      supabase = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+    } catch (createError: any) {
+      console.error('[Cancel Subscription] Failed to create Supabase client:', createError);
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 500 }
+      );
+    }
 
-    console.log('Fetching profile for userId:', userId);
+    console.log('[Cancel Subscription] Fetching profile for userId:', userId);
+    console.log('[Cancel Subscription] Using service role key:', !!supabaseServiceKey);
 
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
@@ -52,29 +69,47 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (fetchError) {
-      console.error('Profile fetch error:', fetchError);
+      console.error('[Cancel Subscription] Profile fetch error:', {
+        message: fetchError.message,
+        code: fetchError.code,
+        details: fetchError.details,
+        hint: fetchError.hint,
+      });
+
+      const isAuthError = fetchError.message?.toLowerCase().includes('api') ||
+                          fetchError.message?.toLowerCase().includes('key') ||
+                          fetchError.message?.toLowerCase().includes('jwt');
+
+      if (isAuthError) {
+        return NextResponse.json(
+          { error: 'We\'re experiencing technical difficulties. Our team has been notified. Please try again in a few moments.' },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json(
-        { error: 'Database error: ' + fetchError.message },
+        { error: 'Unable to access your account information. Please try again.' },
         { status: 500 }
       );
     }
 
     if (!profile) {
-      console.error('No profile found for userId:', userId);
+      console.error('[Cancel Subscription] No profile found for userId:', userId);
       return NextResponse.json(
-        { error: 'Your profile could not be found. This may be a temporary issue. Please try again.' },
+        { error: 'Your account information could not be found. Please try logging out and back in.' },
         { status: 404 }
       );
     }
 
-    console.log('Profile found:', {
+    console.log('[Cancel Subscription] Profile found:', {
       userId,
       hasStripeCustomer: !!profile.stripe_customer_id,
+      hasStripeSubscription: !!profile.stripe_subscription_id,
       billingStatus: profile.billing_status
     });
 
     if (profile.billing_status === 'trialing' && !profile.stripe_customer_id) {
-      console.log('Canceling free trial for user:', userId);
+      console.log('[Cancel Subscription] Canceling free trial for user:', userId);
 
       const { data: updateData, error: updateError } = await supabase
         .from('profiles')
@@ -88,14 +123,18 @@ export async function POST(req: NextRequest) {
         .select();
 
       if (updateError) {
-        console.error('Failed to update profile:', updateError);
+        console.error('[Cancel Subscription] Failed to update profile:', {
+          message: updateError.message,
+          code: updateError.code,
+          details: updateError.details,
+        });
         return NextResponse.json(
-          { error: 'Failed to cancel trial: ' + updateError.message },
+          { error: 'Unable to cancel your trial. Please contact support if this persists.' },
           { status: 500 }
         );
       }
 
-      console.log('Trial cancelled successfully:', updateData);
+      console.log('[Cancel Subscription] Trial cancelled successfully:', updateData);
 
       return NextResponse.json({
         success: true,
@@ -149,9 +188,19 @@ export async function POST(req: NextRequest) {
       message: 'Subscription cancelled. Access continues until the end of your billing period.',
     });
   } catch (error: any) {
-    console.error('Cancellation error:', error);
+    console.error('[Cancel Subscription] Unexpected error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+
+    const isStripeError = error.type?.startsWith('Stripe');
+    const errorMessage = isStripeError
+      ? 'Unable to process cancellation with payment provider. Please try again or contact support.'
+      : 'An unexpected error occurred. Please try again later.';
+
     return NextResponse.json(
-      { error: error.message || 'Failed to cancel subscription' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
