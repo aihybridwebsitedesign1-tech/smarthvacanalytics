@@ -138,6 +138,45 @@ export default function SettingsPage() {
 
   const [portalLoading, setPortalLoading] = useState(false);
   const [setupLoading, setSetupLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+
+    setCancelLoading(true);
+    try {
+      const response = await fetch('/api/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      await refreshProfile();
+
+      toast({
+        title: 'Subscription Cancelled',
+        description: data.message || 'Your subscription has been cancelled successfully.',
+      });
+
+      setTimeout(() => {
+        router.refresh();
+      }, 1500);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const handleBillingPortal = async () => {
     if (!user) return;
@@ -158,16 +197,21 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to open billing portal');
+        const errorMessage = data.message || data.error || 'Failed to open billing portal';
+        throw new Error(errorMessage);
       }
 
       if (data.url) {
         window.location.href = data.url;
       }
     } catch (error: any) {
+      const errorMsg = error.message.includes('Stripe customer')
+        ? 'You need to complete billing setup first. Please click "Complete Billing Setup" to add a payment method.'
+        : error.message;
+
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMsg,
         variant: 'destructive',
       });
     } finally {
@@ -322,32 +366,105 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="flex gap-2">
-            {!profile?.stripe_customer_id ? (
-              <Button
-                variant="default"
-                className="flex-1 bg-orange-600 hover:bg-orange-700"
-                onClick={handleBillingSetup}
-                disabled={setupLoading}
-              >
-                {setupLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading...</>
-                ) : (
-                  <><CreditCard className="mr-2 h-4 w-4" />Complete Billing Setup</>
-                )}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              {!profile?.stripe_customer_id ? (
+                <Button
+                  variant="default"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  onClick={handleBillingSetup}
+                  disabled={setupLoading}
+                >
+                  {setupLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading...</>
+                  ) : (
+                    <><CreditCard className="mr-2 h-4 w-4" />Complete Billing Setup</>
+                  )}
+                </Button>
+              ) : (
+                <Button variant="outline" className="flex-1" onClick={handleBillingPortal} disabled={portalLoading}>
+                  {portalLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading...</>
+                  ) : (
+                    'Manage Billing'
+                  )}
+                </Button>
+              )}
+              <Button variant="default" className="flex-1" onClick={() => router.push('/pricing')}>
+                {profile?.plan_tier === 'starter' ? 'Upgrade Plan' : 'Change Plan'}
               </Button>
-            ) : (
-              <Button variant="outline" className="flex-1" onClick={handleBillingPortal} disabled={portalLoading}>
-                {portalLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading...</>
-                ) : (
-                  'Manage Billing'
-                )}
-              </Button>
+            </div>
+
+            {(profile?.billing_status === 'trialing' || profile?.billing_status === 'active') && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/20"
+                    disabled={cancelLoading}
+                  >
+                    {cancelLoading ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Cancelling...</>
+                    ) : (
+                      profile?.billing_status === 'trialing' ? 'End Free Trial' : 'Cancel Subscription'
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {profile?.billing_status === 'trialing' ? 'End Free Trial?' : 'Cancel Subscription?'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-3">
+                      {profile?.billing_status === 'trialing' ? (
+                        <>
+                          <p>
+                            Are you sure you want to end your free trial? Your account will be immediately cancelled.
+                          </p>
+                          <p className="font-medium text-foreground">
+                            You will lose access to:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>All dashboard features and analytics</li>
+                            <li>Job and technician tracking</li>
+                            <li>Performance insights and recommendations</li>
+                          </ul>
+                          <p className="text-sm">
+                            You can always come back and start a new subscription later.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            Are you sure you want to cancel your subscription? Your access will continue until the end of your current billing period.
+                          </p>
+                          <p className="font-medium text-foreground">
+                            After cancellation:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li>Access continues until {profile?.subscription_end ? new Date(profile.subscription_end).toLocaleDateString() : 'end of billing period'}</li>
+                            <li>No further charges will be made</li>
+                            <li>You can reactivate anytime before the end date</li>
+                          </ul>
+                          <p className="text-sm">
+                            Your data will be preserved for 30 days after cancellation.
+                          </p>
+                        </>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep {profile?.billing_status === 'trialing' ? 'Trial' : 'Subscription'}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleCancelSubscription}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Yes, Cancel
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
-            <Button variant="default" className="flex-1" onClick={() => router.push('/pricing')}>
-              {profile?.plan_tier === 'starter' ? 'Upgrade Plan' : 'Change Plan'}
-            </Button>
           </div>
         </CardContent>
       </Card>
