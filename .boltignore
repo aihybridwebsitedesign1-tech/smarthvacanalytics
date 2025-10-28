@@ -1,0 +1,48 @@
+# Testing and development files
+scripts/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation (exclude large docs from deployment)
+*.md
+!README.md
+*.txt
+!package.json
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Build artifacts
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Environment files (use Bolt.new environment variables)
+.env
+.env*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Test files
+coverage/
+.nyc_output/
