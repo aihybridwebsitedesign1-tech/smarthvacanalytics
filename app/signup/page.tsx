@@ -78,45 +78,14 @@ export default function SignupPage() {
           console.error('Demo data seeding error:', seedError);
         });
 
-        const planConfig = {
-          starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-          growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID,
-          pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-        };
-
-        const priceId = planConfig[planTier as keyof typeof planConfig];
-
-        if (!priceId) {
-          toast({
-            title: 'Configuration Error',
-            description: 'Stripe is not properly configured. Please contact support.',
-            variant: 'destructive',
-          });
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            priceId,
-            userId: authData.user.id,
-            email: authData.user.email,
-          }),
+        toast({
+          title: 'Account Created Successfully!',
+          description: 'Welcome to your 14-day free trial. Redirecting to dashboard...',
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create checkout session');
-        }
-
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          throw new Error('No checkout URL returned');
-        }
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -135,7 +104,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-heading font-bold mb-2">Get Started</h1>
           <p className="text-muted-foreground">
-            Choose your plan and start managing your HVAC business today.
+            Start your 14-day free trial. No credit card required.
           </p>
         </div>
 

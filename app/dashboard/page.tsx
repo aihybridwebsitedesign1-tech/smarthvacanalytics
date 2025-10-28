@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { TimeRangeSelector, TimeRange, TIME_RANGES } from '@/components/dashboard/time-range-selector';
-import { BillingAlertBanner } from '@/components/dashboard/billing-alert-banner';
+import { TrialCountdownBanner } from '@/components/dashboard/trial-countdown-banner';
 import { DollarSign, Briefcase, Clock, TrendingUp, ArrowRight, Lightbulb, Target, CheckCircle, Timer, Users, Wrench, BarChart3, Phone, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { calculateKpisForDateRange, KpiData } from '@/lib/kpi-calculations';
 import { subDays } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { checkBillingStatus } from '@/lib/billing-utils';
+import { calculateTrialStatus } from '@/lib/billing-utils';
 
 export default function DashboardPage() {
   const { user, profile, refreshProfile } = useAuth();
@@ -25,7 +25,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user || !profile) {
-      console.log('[Dashboard] User or profile not loaded yet, skipping checkout check');
       return;
     }
 
@@ -33,43 +32,9 @@ export default function DashboardPage() {
     const sessionId = urlParams.get('session_id');
     const fromCheckout = urlParams.get('from_checkout');
 
-    console.log('[Dashboard] Checkout check:', {
-      sessionId,
-      fromCheckout,
-      userId: user.id,
-      billingStatus: profile.billing_status,
-      planTier: profile.plan_tier
-    });
-
-    const shouldAutoActivate =
-      profile.billing_status === 'trialing' &&
-      (profile.plan_tier === 'growth' || profile.plan_tier === 'pro');
-
-    if (shouldAutoActivate) {
-      console.log('[Dashboard] Paid plan with trialing status detected, auto-activating...');
-      const activateAccount = async () => {
-        try {
-          const response = await fetch('/api/checkout/activate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id }),
-          });
-
-          const result = await response.json();
-          console.log('[Dashboard] Auto-activate response:', response.status, result);
-
-          if (response.ok) {
-            console.log('[Dashboard] Activation successful, refreshing profile...');
-            await refreshProfile();
-          }
-        } catch (error) {
-          console.error('[Dashboard] Error auto-activating account:', error);
-        }
-      };
-      activateAccount();
-    }
-
-    if (sessionId || fromCheckout) {
+    if (fromCheckout && sessionId) {
+      console.log('[Dashboard] Payment completed, refreshing profile...');
+      refreshProfile();
       window.history.replaceState({}, '', '/dashboard');
     }
   }, [user, profile, refreshProfile]);
@@ -152,7 +117,7 @@ export default function DashboardPage() {
     );
   }
 
-  const billingStatus = profile ? checkBillingStatus(profile) : null;
+  const trialStatus = profile ? calculateTrialStatus(profile) : null;
 
   return (
     <div className="space-y-6">
@@ -164,14 +129,8 @@ export default function DashboardPage() {
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
 
-      {billingStatus?.needsPaymentMethod && (
-        <BillingAlertBanner
-          message={billingStatus.message}
-          daysRemaining={billingStatus.daysRemaining}
-          planTier={profile?.plan_tier || 'starter'}
-          userId={user?.id || ''}
-          userEmail={user?.email || ''}
-        />
+      {profile && trialStatus?.shouldShowCountdown && (
+        <TrialCountdownBanner profile={profile} />
       )}
 
       {profile?.demo_mode && (
