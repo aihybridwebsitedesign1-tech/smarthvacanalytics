@@ -5,20 +5,16 @@ import Stripe from 'stripe';
 function validateEnvironment() {
   const errors: string[] = [];
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_Bolt_Database_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.Bolt_Database_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_Bolt_Database_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl) {
-    errors.push('NEXT_PUBLIC_Bolt_Database_URL or NEXT_PUBLIC_SUPABASE_URL is not configured');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    errors.push('NEXT_PUBLIC_SUPABASE_URL is not configured');
   }
 
-  if (!supabaseServiceKey) {
-    errors.push('Bolt_Database_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY is not configured');
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    errors.push('SUPABASE_SERVICE_ROLE_KEY is not configured');
   }
 
-  if (!supabaseAnonKey) {
-    errors.push('NEXT_PUBLIC_Bolt_Database_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured');
   }
 
   return errors;
@@ -47,16 +43,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabaseUrl =
-      process.env.NEXT_PUBLIC_Bolt_Database_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-    const supabaseServiceKey =
-      process.env.Bolt_Database_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[Cancel Subscription] CRITICAL: Supabase configuration is not complete');
+    if (!supabaseServiceKey) {
+      console.error('[Cancel Subscription] CRITICAL: Service role key is not configured');
       return NextResponse.json(
         { error: 'Service temporarily unavailable. Please contact support.' },
         { status: 500 }

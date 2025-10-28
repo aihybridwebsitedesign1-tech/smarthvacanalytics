@@ -1,20 +1,8 @@
 export function validateEnvVariables() {
-  const supabaseUrl =
-    process.env.NEXT_PUBLIC_Bolt_Database_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  const supabaseAnonKey =
-    process.env.NEXT_PUBLIC_Bolt_Database_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  const supabaseServiceRoleKey =
-    process.env.Bolt_Database_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY;
-
   const required = {
-    'NEXT_PUBLIC_Bolt_Database_URL or NEXT_PUBLIC_SUPABASE_URL': supabaseUrl,
-    'NEXT_PUBLIC_Bolt_Database_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY': supabaseAnonKey,
-    'Bolt_Database_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY': supabaseServiceRoleKey,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
