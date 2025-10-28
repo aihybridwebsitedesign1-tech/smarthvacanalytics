@@ -1,28 +1,34 @@
 import { supabase } from './client';
 
 export async function signUp(email: string, password: string, companyName: string, technicianCount: number, planTier: string) {
+  // Sign up the user with metadata - trigger will create the profile automatically
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        company_name: companyName,
+        plan_tier: planTier,
+        technician_count: technicianCount,
+      }
+    }
   });
 
   if (authError) throw authError;
   if (!authData.user) throw new Error('No user returned from signup');
 
-  const client: any = supabase;
-  const { error: profileError } = await client.from('profiles').insert({
-    id: authData.user.id,
-    email,
-    company_name: companyName,
-    technician_count: technicianCount,
-    plan_tier: planTier,
-    demo_mode: true,
-    user_role: 'owner',
-  });
-
-  if (profileError) throw profileError;
-
-  await supabase.auth.getSession();
+  // Wait for session to be fully established
+  let retries = 0;
+  while (retries < 10) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session) {
+      // Session is ready - wait one more second for RLS to be fully active
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+    retries++;
+  }
 
   return authData;
 }
