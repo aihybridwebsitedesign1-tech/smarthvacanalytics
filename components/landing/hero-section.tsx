@@ -1,11 +1,18 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { BarChart3, Clock, TrendingUp } from 'lucide-react';
 
 export function HeroSection() {
   return (
     <section className="py-20 px-4 text-center">
       <div className="max-w-5xl mx-auto space-y-8">
+        <div className="inline-block mb-4">
+          <Badge variant="secondary" className="text-base px-4 py-2 font-semibold">
+            🎉 Start Your 14-Day Free Trial Today - No Credit Card Required
+          </Badge>
+        </div>
+
         <h1 className="text-5xl md:text-6xl font-heading font-bold leading-tight">
           Save Time. Grow Profits.
           <br />
@@ -17,10 +24,14 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-          <Button size="lg" className="text-lg px-8" asChild>
-            <Link href="/signup">Get Started</Link>
+          <Button size="lg" className="text-lg px-8 py-6" asChild>
+            <Link href="/signup">Start Free 14-Day Trial</Link>
           </Button>
         </div>
+
+        <p className="text-sm text-muted-foreground pt-2">
+          No credit card required • Full access to all features • Cancel anytime
+        </p>
 
         <div className="grid md:grid-cols-3 gap-8 pt-12 text-left">
           <div className="bg-card p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow">

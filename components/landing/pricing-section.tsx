@@ -53,8 +53,11 @@ export function PricingSection() {
           <h2 className="text-4xl font-heading font-bold mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground mb-4">
             Choose the plan that fits your business needs.
+          </p>
+          <p className="text-lg font-semibold text-primary">
+            All plans include a 14-day free trial • No credit card required
           </p>
         </div>
 
@@ -75,6 +78,11 @@ export function PricingSection() {
                 <CardTitle className="text-2xl font-heading">{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
                 <div className="pt-4">
+                  <div className="mb-2">
+                    <span className="text-sm font-semibold text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 px-3 py-1 rounded-full">
+                      14-Day Free Trial
+                    </span>
+                  </div>
                   <span className="text-4xl font-bold">${plan.price}</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
@@ -92,7 +100,7 @@ export function PricingSection() {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" variant={plan.popular ? 'default' : 'outline'} asChild>
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/signup">Start Free Trial</Link>
                 </Button>
               </CardFooter>
             </Card>

@@ -80,9 +80,14 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
           )}
           <CardHeader>
             <CardTitle className="text-2xl">{plan.name}</CardTitle>
+            <div className="mt-2 mb-3">
+              <span className="text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 px-2 py-1 rounded-full">
+                14-Day Free Trial
+              </span>
+            </div>
             <CardDescription>
               <span className="text-3xl font-bold text-foreground">${plan.price}</span>
-              <span className="text-muted-foreground">/month</span>
+              <span className="text-muted-foreground">/month after trial</span>
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { TimeRangeSelector, TimeRange, TIME_RANGES } from '@/components/dashboard/time-range-selector';
 import { BillingAlertBanner } from '@/components/dashboard/billing-alert-banner';
-import { DollarSign, Briefcase, Clock, TrendingUp, ArrowRight, Lightbulb, Target, CheckCircle, Timer, Users, Wrench, BarChart3, Phone, AlertTriangle } from 'lucide-react';
+import { DollarSign, Briefcase, Clock, TrendingUp, ArrowRight, Lightbulb, Target, CheckCircle, Timer, Users, Wrench, BarChart3, Phone, AlertTriangle, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { calculateKpisForDateRange, KpiData } from '@/lib/kpi-calculations';
@@ -164,7 +164,29 @@ export default function DashboardPage() {
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
 
-      {billingStatus?.needsPaymentMethod && (
+      {billingStatus?.isTrialing && billingStatus.daysRemaining > 0 && (
+        <Alert className="border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+          <Timer className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="ml-2 flex items-center justify-between flex-wrap gap-4">
+            <div className="flex-1">
+              <p className="font-medium text-blue-900 dark:text-blue-200">
+                {billingStatus.message} Enjoying full access to all features!
+              </p>
+            </div>
+            <Button
+              asChild
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Link href="/pricing">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Upgrade Now
+              </Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {billingStatus?.needsPaymentMethod && !billingStatus.isTrialing && (
         <BillingAlertBanner
           message={billingStatus.message}
           daysRemaining={billingStatus.daysRemaining}

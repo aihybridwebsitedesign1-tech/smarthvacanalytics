@@ -78,45 +78,12 @@ export default function SignupPage() {
           console.error('Demo data seeding error:', seedError);
         });
 
-        const planConfig = {
-          starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-          growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID,
-          pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-        };
-
-        const priceId = planConfig[planTier as keyof typeof planConfig];
-
-        if (!priceId) {
-          toast({
-            title: 'Configuration Error',
-            description: 'Stripe is not properly configured. Please contact support.',
-            variant: 'destructive',
-          });
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            priceId,
-            userId: authData.user.id,
-            email: authData.user.email,
-          }),
+        toast({
+          title: 'Welcome to Smart HVAC Analytics!',
+          description: 'Your 14-day free trial has started. Enjoy full access to all features!',
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create checkout session');
-        }
-
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          throw new Error('No checkout URL returned');
-        }
+        router.push('/dashboard');
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -133,9 +100,12 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary p-4 py-12">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-heading font-bold mb-2">Get Started</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-4xl font-heading font-bold mb-2">Start Your 14-Day Free Trial</h1>
+          <p className="text-muted-foreground text-lg mb-2">
             Choose your plan and start managing your HVAC business today.
+          </p>
+          <p className="text-primary font-semibold">
+            No credit card required • Full access to all features
           </p>
         </div>
 
@@ -157,7 +127,7 @@ export default function SignupPage() {
               <CardHeader>
                 <CardTitle className="text-2xl font-heading text-center">Choose Your Plan</CardTitle>
                 <CardDescription className="text-center">
-                  Select the plan that fits your business needs
+                  Select the plan that fits your business needs • 14-day free trial included
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -251,7 +221,7 @@ export default function SignupPage() {
               <CardContent className="space-y-4 pt-0">
                 <Button type="submit" className="w-full" disabled={loading || !!validationError}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
+                  Start Free Trial
                 </Button>
                 <Button
                   type="button"

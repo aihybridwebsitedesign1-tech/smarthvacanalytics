@@ -83,8 +83,11 @@ export default function PricingPage() {
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
             Choose the perfect plan for your HVAC business.
+          </p>
+          <p className="text-lg font-semibold text-primary">
+            All plans include a 14-day free trial • No credit card required
           </p>
         </div>
 
@@ -111,11 +114,16 @@ export default function PricingPage() {
                 <CardHeader className="text-center pb-8">
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <div className="mt-4">
+                    <div className="mb-2">
+                      <span className="text-sm font-semibold text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 px-3 py-1 rounded-full">
+                        14-Day Free Trial
+                      </span>
+                    </div>
                     <span className="text-4xl font-bold">${plan.price}</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <CardDescription className="mt-2">
-                    Billed monthly
+                    Billed monthly after trial
                   </CardDescription>
                 </CardHeader>
 
@@ -148,7 +156,7 @@ export default function PricingPage() {
                           Processing...
                         </>
                       ) : (
-                        'Subscribe Now'
+                        'Start Free Trial'
                       )}
                     </Button>
                   )}
