@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -23,7 +24,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      await signIn(email, password, rememberMe);
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
@@ -74,6 +75,19 @@ export default function LoginPage() {
                 required
                 disabled={loading}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+                className="w-4 h-4 text-primary bg-background border-gray-300 rounded focus:ring-primary focus:ring-2"
+              />
+              <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
+                Keep me signed in
+              </Label>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

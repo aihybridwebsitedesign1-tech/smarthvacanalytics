@@ -82,9 +82,15 @@ export default function PricingPage() {
         )}
 
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <div className="inline-block bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-6 py-3 rounded-full text-lg font-semibold mb-6">
+            🎉 14-Day Free Trial • No Credit Card Required
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
             Choose the perfect plan for your HVAC business.
+          </p>
+          <p className="text-lg font-medium text-foreground">
+            Start your free trial today. Payment only required after 14 days.
           </p>
         </div>
 
@@ -100,9 +106,14 @@ export default function PricingPage() {
                   isPopular ? 'border-primary shadow-lg scale-105' : ''
                 } ${isCurrentPlan ? 'border-green-500' : ''}`}
               >
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                    14 Days FREE
+                  </span>
+                </div>
                 {isPopular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
+                  <div className="absolute -top-3 right-4 z-10">
+                    <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
                       Most Popular
                     </span>
                   </div>
@@ -111,11 +122,14 @@ export default function PricingPage() {
                 <CardHeader className="text-center pb-8">
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <div className="mt-4">
+                    <div className="text-sm text-muted-foreground line-through mb-1">
+                      First 14 days: $0
+                    </div>
                     <span className="text-4xl font-bold">${plan.price}</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
                   <CardDescription className="mt-2">
-                    Billed monthly
+                    After trial • Billed monthly
                   </CardDescription>
                 </CardHeader>
 
@@ -147,8 +161,10 @@ export default function PricingPage() {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing...
                         </>
+                      ) : user ? (
+                        'Add Payment Method'
                       ) : (
-                        'Subscribe Now'
+                        'Start Free Trial'
                       )}
                     </Button>
                   )}
@@ -158,14 +174,33 @@ export default function PricingPage() {
           })}
         </div>
 
-        <div className="text-center mt-12 text-sm text-muted-foreground">
-          <p>All plans include secure data storage, regular backups, and 99.9% uptime SLA.</p>
-          <p className="mt-2">
-            Need a custom plan for your enterprise?{' '}
-            <a href="mailto:sales@smarthvacanalytics.com" className="text-primary hover:underline">
-              Contact us
-            </a>
-          </p>
+        <div className="text-center mt-16">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6 max-w-3xl mx-auto mb-8">
+            <h3 className="text-xl font-semibold mb-3">How the Free Trial Works</h3>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="font-semibold text-blue-600 dark:text-blue-400 mb-1">1. Sign Up Free</div>
+                <p className="text-muted-foreground">No credit card required. Start using all features immediately.</p>
+              </div>
+              <div>
+                <div className="font-semibold text-blue-600 dark:text-blue-400 mb-1">2. 14 Days Full Access</div>
+                <p className="text-muted-foreground">Explore all premium features with no restrictions.</p>
+              </div>
+              <div>
+                <div className="font-semibold text-blue-600 dark:text-blue-400 mb-1">3. Add Payment Later</div>
+                <p className="text-muted-foreground">Add your payment method before trial ends to continue.</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            <p>All plans include secure data storage, regular backups, and 99.9% uptime SLA.</p>
+            <p className="mt-2">
+              Need a custom plan for your enterprise?{' '}
+              <a href="mailto:sales@smarthvacanalytics.com" className="text-primary hover:underline">
+                Contact us
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -33,14 +33,36 @@ export async function signUp(email: string, password: string, companyName: strin
   return authData;
 }
 
-export async function signIn(email: string, password: string) {
+export async function signIn(email: string, password: string, rememberMe: boolean = false) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) throw error;
+
+  if (!rememberMe && data.session) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('supabase_session_mode', 'temporary');
+    }
+  } else {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('supabase_session_mode', 'persistent');
+    }
+  }
+
   return data;
+}
+
+export function clearSessionOnBrowserClose() {
+  if (typeof window !== 'undefined') {
+    const sessionMode = localStorage.getItem('supabase_session_mode');
+    if (sessionMode === 'temporary') {
+      window.addEventListener('beforeunload', () => {
+        supabase.auth.signOut();
+      });
+    }
+  }
 }
 
 export async function signOut() {

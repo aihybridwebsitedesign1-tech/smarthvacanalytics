@@ -79,10 +79,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOutUser = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('supabase_session_mode');
+    }
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sessionMode = localStorage.getItem('supabase_session_mode');
+
+      if (sessionMode === 'temporary') {
+        const handleBeforeUnload = () => {
+          supabase.auth.signOut();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+      }
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, signOut: signOutUser, refreshProfile }}>
