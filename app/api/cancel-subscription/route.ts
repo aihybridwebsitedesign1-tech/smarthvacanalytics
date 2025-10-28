@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json();
+    const authHeader = req.headers.get('authorization');
 
     if (!userId) {
       return NextResponse.json(
@@ -13,31 +14,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Authorization header required' },
+        { status: 401 }
+      );
+    }
 
-    if (!serviceRoleKey && !anonKey) {
-      console.error('Missing Supabase keys');
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing Supabase configuration');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabaseKey = serviceRoleKey || anonKey!;
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      supabaseKey,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
 
     console.log('Fetching profile for userId:', userId);
-    console.log('Using service role key:', !!serviceRoleKey);
 
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
