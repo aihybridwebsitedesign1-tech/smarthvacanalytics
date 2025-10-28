@@ -11,27 +11,28 @@ The API endpoint `/api/cancel-subscription` returns a 500 Internal Server Error.
 
 ## Root Cause
 
-**Critical Configuration Mismatch**: Your Supabase service role key is from a different project than your Supabase URL and anon key.
+**Critical Configuration Mismatch**: Your Supabase URL and anon key were from a different project than your service role key.
 
-- `NEXT_PUBLIC_SUPABASE_URL`: Project **kvgptvhspucsokvxwlql** ✓
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Project **kvgptvhspucsokvxwlql** ✓
-- `SUPABASE_SERVICE_ROLE_KEY`: Project **imxmvqxugbrhwxhfrmje** ❌ (WRONG)
+- `NEXT_PUBLIC_SUPABASE_URL`: Was **kvgptvhspucsokvxwlql** ❌ (WRONG)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Was **kvgptvhspucsokvxwlql** ❌ (WRONG)
+- `SUPABASE_SERVICE_ROLE_KEY`: Project **imxmvqxugbrhwxhfrmje** ✓ (CORRECT)
 
-When the cancel subscription API tries to connect to the database using a service role key from a different project, Supabase rejects the authentication, causing the error.
+The correct database is **imxmvqxugbrhwxhfrmje**. All keys must point to this project.
 
-## Solution
+## Solution Applied
 
-### Step 1: Get the Correct Service Role Key
+The `.env` file has been updated to point all keys to the correct project: **imxmvqxugbrhwxhfrmje**.
+
+### Step 1: Get Your Anon Key
 
 1. Go to your Supabase dashboard for the correct project:
    ```
-   https://supabase.com/dashboard/project/kvgptvhspucsokvxwlql/settings/api
+   https://supabase.com/dashboard/project/imxmvqxugbrhwxhfrmje/settings/api
    ```
 
-2. In the API Settings page, find the **"service_role"** key section
-   - DO NOT copy the "anon" key
-   - DO NOT copy the "public anon" key
-   - Copy the **"service_role"** secret key
+2. In the API Settings page, copy the **"anon public"** key
+   - This is the PUBLIC key that's safe to expose in your frontend
+   - DO NOT copy the service_role key here
 
 3. The key should start with `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
@@ -39,9 +40,9 @@ When the cancel subscription API tries to connect to the database using a servic
 
 1. Open the `.env` file in your project root
 
-2. Find the line starting with `SUPABASE_SERVICE_ROLE_KEY=`
+2. Find the line `NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY_HERE`
 
-3. Replace the entire key value with the correct service role key you copied
+3. Replace `YOUR_ANON_KEY_HERE` with the anon key you copied from step 1
 
 4. Save the file
 
@@ -64,14 +65,11 @@ When the cancel subscription API tries to connect to the database using a servic
 
 ## Verification
 
-To verify the keys match, you can decode the JWT tokens and check the "ref" field:
+All keys should now point to project **imxmvqxugbrhwxhfrmje**:
 
-**ANON KEY** (currently correct):
-- Decoded payload includes: `"ref":"kvgptvhspucsokvxwlql"`
-
-**SERVICE ROLE KEY** (needs to be updated):
-- Current (wrong): `"ref":"imxmvqxugbrhwxhfrmje"`
-- Should be: `"ref":"kvgptvhspucsokvxwlql"`
+- ✓ SUPABASE_URL: `https://imxmvqxugbrhwxhfrmje.supabase.co` (CORRECTED)
+- ⚠️ ANON_KEY: Needs to be updated with your anon key from the dashboard
+- ✓ SERVICE_ROLE_KEY: Already correct
 
 ## Database Configuration
 
@@ -87,6 +85,8 @@ No database changes are needed - only the environment variable needs correction.
 
 ## Technical Details
 
-The error occurs in `/app/api/cancel-subscription/route.ts` at line 76-116 when attempting to query the profiles table. The service role client is created with a key from project "imxmvqxugbrhwxhfrmje" but tries to connect to project "kvgptvhspucsokvxwlql", causing Supabase to reject the authentication.
+The error occurred in `/app/api/cancel-subscription/route.ts` at line 76-116 when attempting to query the profiles table. The service role client was created with a key from project "imxmvqxugbrhwxhfrmje" but tried to connect to project "kvgptvhspucsokvxwlql", causing Supabase to reject the authentication.
 
-The code includes comprehensive error handling that detects this as an authentication error and returns the "Service authentication failed" message to protect sensitive configuration details from being exposed to the client.
+The fix corrects the SUPABASE_URL and ANON_KEY to point to the correct project "imxmvqxugbrhwxhfrmje" so all keys now match.
+
+The code includes comprehensive error handling that detects authentication errors and returns the "Service authentication failed" message to protect sensitive configuration details from being exposed to the client.
