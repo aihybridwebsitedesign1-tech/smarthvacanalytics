@@ -13,23 +13,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!serviceRoleKey && !anonKey) {
+      console.error('Missing Supabase keys');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const supabaseKey = serviceRoleKey || anonKey!;
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      supabaseKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
-    const { data: profile } = await supabase
+    console.log('Fetching profile for userId:', userId);
+    console.log('Using service role key:', !!serviceRoleKey);
+
+    const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('stripe_customer_id, stripe_subscription_id, billing_status')
       .eq('id', userId)
       .maybeSingle();
 
-    if (!profile) {
+    if (fetchError) {
+      console.error('Profile fetch error:', fetchError);
       return NextResponse.json(
-        { error: 'Profile not found' },
+        { error: 'Database error: ' + fetchError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!profile) {
+      console.error('No profile found for userId:', userId);
+      return NextResponse.json(
+        { error: 'Your profile could not be found. This may be a temporary issue. Please try again.' },
         { status: 404 }
       );
     }
+
+    console.log('Profile found:', {
+      userId,
+      hasStripeCustomer: !!profile.stripe_customer_id,
+      billingStatus: profile.billing_status
+    });
 
     if (profile.billing_status === 'trialing' && !profile.stripe_customer_id) {
       const { error } = await supabase
