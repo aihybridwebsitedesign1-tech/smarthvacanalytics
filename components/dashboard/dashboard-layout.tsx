@@ -6,10 +6,9 @@ import { useEffect } from 'react';
 import { Sidebar } from './sidebar';
 import { DashboardHeader } from './header';
 import { Loader2 } from 'lucide-react';
-import { isAccountSuspended } from '@/lib/billing-utils';
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,15 +16,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [user, loading, router]);
-
-  useEffect(() => {
-    if (!loading && user && profile) {
-      const suspended = isAccountSuspended(profile);
-      if (suspended) {
-        router.push('/suspended');
-      }
-    }
-  }, [user, profile, loading, router]);
 
   if (loading) {
     return (

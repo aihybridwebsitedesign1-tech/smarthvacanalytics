@@ -28,23 +28,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string, retries = 5) => {
-    for (let i = 0; i < retries; i++) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
-      if (!error && data) {
-        setProfile(data);
-        return;
-      }
-
-      // If we got a 401 or no data, wait and retry
-      if (i < retries - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-      }
+    if (!error && data) {
+      setProfile(data);
     }
   };
 
@@ -79,31 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOutUser = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('supabase_session_mode');
-    }
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
   };
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const sessionMode = localStorage.getItem('supabase_session_mode');
-
-      if (sessionMode === 'temporary') {
-        const handleBeforeUnload = () => {
-          supabase.auth.signOut();
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-          window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-      }
-    }
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, profile, loading, signOut: signOutUser, refreshProfile }}>
