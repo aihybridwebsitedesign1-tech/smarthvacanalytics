@@ -1,6 +1,116 @@
-# Bolt.new Custom Domain Setup
+# Bolt.new Deployment Fix - 404 ERROR SOLUTION
 
-Step-by-step guide to connect your custom domain to this Bolt.new project.
+## 🚨 CURRENT ISSUE: Site Shows 404
+
+Your Bolt.new domain `hvac-kpi-tracker-dup-lvkn.bolt.host` is published but showing 404 error.
+
+## ✅ FIX APPLIED
+
+Updated `next.config.js` to include:
+```javascript
+output: 'standalone'
+```
+
+This is REQUIRED for Bolt.new deployment.
+
+---
+
+## 🔥 ACTION REQUIRED: Trigger Rebuild
+
+### DO THIS NOW:
+
+1. In Bolt.new, click the **pencil/edit icon** next to your domain name
+2. OR click the **"Update"** button in the publish modal
+3. Wait 5-10 minutes for rebuild
+
+**This will rebuild with the correct configuration and fix the 404.**
+
+---
+
+## Before Rebuilding: Verify Environment Variables
+
+Make sure ALL these are set in Bolt.new project settings (NOT in code):
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID
+NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID
+NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
+NEXT_PUBLIC_APP_URL=https://hvac-kpi-tracker-dup-lvkn.bolt.host
+```
+
+Missing environment variables will cause runtime errors!
+
+---
+
+## 📋 Expected Timeline
+
+```
+Now         - next.config.js updated ✅ DONE
++2 min      - Click "Update" in Bolt.new
++3-5 min    - Dependencies installing
++5-8 min    - Next.js building
++8-10 min   - Deployment complete
++10 min     - Site live! 🎉
+```
+
+---
+
+## 🧪 How to Test After Rebuild
+
+Try these URLs once rebuild completes:
+
+1. `https://hvac-kpi-tracker-dup-lvkn.bolt.host/`
+2. `https://hvac-kpi-tracker-dup-lvkn.bolt.host/login`
+3. `https://hvac-kpi-tracker-dup-lvkn.bolt.host/pricing`
+
+All should load correctly (no 404).
+
+---
+
+## 🔍 Troubleshooting
+
+### Still 404 After 15 Minutes?
+
+**Check build logs in Bolt.new:**
+- Look for "Logs" or "Deployments" tab
+- Check for build errors
+- Verify all env vars are set
+
+**Common issues:**
+1. **Missing env vars** - Site builds but crashes at runtime
+2. **Build timeout** - Click Update again
+3. **Cache issues** - Try incognito/private browser window
+
+---
+
+## 🚀 Alternative: Deploy to Vercel (If Bolt.new Fails)
+
+If Bolt.new continues having deployment issues:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Follow prompts
+# Add environment variables in Vercel dashboard
+```
+
+Vercel is more reliable for Next.js apps and has better error messages.
+
+---
+
+# Custom Domain Setup (Do This AFTER Site Works)
+
+Once your Bolt domain works, follow these steps to add a custom domain.
 
 ## Overview
 
