@@ -6,6 +6,10 @@ export function HeroSection() {
   return (
     <section className="py-20 px-4 text-center">
       <div className="max-w-5xl mx-auto space-y-8">
+        <div className="inline-block bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-8 py-4 rounded-full text-xl font-bold mb-4 shadow-lg border-2 border-green-600 dark:border-green-500">
+          🎉 Start Your 14-Day Free Trial • No Credit Card Required
+        </div>
+
         <h1 className="text-5xl md:text-6xl font-heading font-bold leading-tight">
           Save Time. Grow Profits.
           <br />
@@ -18,8 +22,11 @@ export function HeroSection() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
           <Button size="lg" className="text-lg px-8" asChild>
-            <Link href="/signup">Get Started</Link>
+            <Link href="/signup">Start Free Trial</Link>
           </Button>
+          <p className="text-sm text-muted-foreground self-center">
+            Try free for 14 days, then choose your plan
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 pt-12 text-left">

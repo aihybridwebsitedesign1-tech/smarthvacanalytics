@@ -122,11 +122,15 @@ export default function SignupPage() {
 
         {step === 1 && (
           <div className="space-y-6">
+            <div className="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-4 rounded-xl shadow-lg max-w-4xl mx-auto text-center mb-6">
+              <p className="text-2xl font-bold mb-1">14-Day Free Trial</p>
+              <p className="text-green-50">No Credit Card Required • Cancel Anytime • Full Access to All Features</p>
+            </div>
             <Card className="max-w-4xl mx-auto">
               <CardHeader>
                 <CardTitle className="text-2xl font-heading text-center">Choose Your Plan</CardTitle>
                 <CardDescription className="text-center">
-                  Select the plan that fits your business needs
+                  Select the plan that fits your business needs. All plans include a 14-day free trial.
                 </CardDescription>
               </CardHeader>
               <CardContent>

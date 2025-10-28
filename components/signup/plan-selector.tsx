@@ -69,20 +69,30 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
           key={plan.id}
           className={cn(
             'relative cursor-pointer transition-all hover:shadow-lg',
-            selectedPlan === plan.slug && 'ring-2 ring-primary shadow-lg'
+            selectedPlan === plan.slug && 'ring-2 ring-primary shadow-lg',
+            plan.slug === 'growth' && 'scale-105'
           )}
           onClick={() => onSelectPlan(plan.slug)}
         >
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+            <span className="bg-green-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+              14 DAYS FREE
+            </span>
+          </div>
           {plan.slug === 'growth' && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">
-              Popular
+            <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-center py-2 text-sm font-medium rounded-t-lg mt-3">
+              Most Popular
             </div>
           )}
-          <CardHeader>
+          <CardHeader className={plan.slug === 'growth' ? '' : 'pt-8'}>
             <CardTitle className="text-2xl">{plan.name}</CardTitle>
             <CardDescription>
+              <div className="text-sm text-muted-foreground line-through mb-1">
+                First 14 days: $0
+              </div>
               <span className="text-3xl font-bold text-foreground">${plan.price}</span>
               <span className="text-muted-foreground">/month</span>
+              <div className="text-xs text-muted-foreground mt-1">after trial</div>
             </CardDescription>
           </CardHeader>
           <CardContent>
