@@ -30,10 +30,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_Bolt_Database_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const supabaseServiceKey =
+    process.env.Bolt_Database_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_Bolt_Database_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
   console.log(`[Stripe Webhook] Received event: ${event.type}`);
 
