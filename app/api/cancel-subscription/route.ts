@@ -31,13 +31,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (profile.billing_status === 'trialing') {
+    if (profile.billing_status === 'trialing' && !profile.stripe_customer_id) {
       const { error } = await supabase
         .from('profiles')
         .update({
           billing_status: 'cancelled',
           trial_end_date: new Date().toISOString(),
           subscription_end: new Date().toISOString(),
+          account_status: 'suspended',
         })
         .eq('id', userId);
 

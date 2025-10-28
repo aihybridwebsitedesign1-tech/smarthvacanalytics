@@ -349,7 +349,7 @@ export default function SettingsPage() {
             </ul>
           </div>
 
-          {profile?.billing_status === 'trialing' && profile?.trial_end_date ? (
+          {profile?.trial_end_date && !profile?.stripe_customer_id && profile?.billing_status === 'trialing' ? (
             <>
               <div className="text-sm text-muted-foreground pt-2">
                 <strong>Trial Ends:</strong> {getRenewalDate(profile.trial_end_date)}
@@ -404,7 +404,7 @@ export default function SettingsPage() {
               </Button>
             </div>
 
-            {(profile?.billing_status === 'trialing' || profile?.billing_status === 'active') && (
+            {((profile?.billing_status === 'trialing' && !profile?.stripe_customer_id) || (profile?.billing_status === 'active' && profile?.stripe_customer_id)) && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -415,17 +415,17 @@ export default function SettingsPage() {
                     {cancelLoading ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Cancelling...</>
                     ) : (
-                      profile?.billing_status === 'trialing' ? 'End Free Trial' : 'Cancel Subscription'
+                      (profile?.billing_status === 'trialing' && !profile?.stripe_customer_id) ? 'End Free Trial' : 'Cancel Subscription'
                     )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
-                      {profile?.billing_status === 'trialing' ? 'End Free Trial?' : 'Cancel Subscription?'}
+                      {(profile?.billing_status === 'trialing' && !profile?.stripe_customer_id) ? 'End Free Trial?' : 'Cancel Subscription?'}
                     </AlertDialogTitle>
                     <AlertDialogDescription className="space-y-3">
-                      {profile?.billing_status === 'trialing' ? (
+                      {(profile?.billing_status === 'trialing' && !profile?.stripe_customer_id) ? (
                         <>
                           <p>
                             Are you sure you want to end your free trial? Your account will be immediately cancelled.
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Keep {profile?.billing_status === 'trialing' ? 'Trial' : 'Subscription'}</AlertDialogCancel>
+                    <AlertDialogCancel>Keep {(profile?.billing_status === 'trialing' && !profile?.stripe_customer_id) ? 'Trial' : 'Subscription'}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleCancelSubscription}
                       className="bg-red-600 hover:bg-red-700"
