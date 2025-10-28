@@ -74,9 +74,14 @@ export default function SignupPage() {
       );
 
       if (authData.user) {
-        seedDemoData(authData.user.id).catch((seedError: any) => {
+        // Wait for demo data to be seeded before redirecting
+        try {
+          await seedDemoData(authData.user.id);
+          console.log('Demo data seeded successfully');
+        } catch (seedError: any) {
           console.error('Demo data seeding error:', seedError);
-        });
+          // Continue even if demo data fails - user can still use the app
+        }
 
         toast({
           title: 'Welcome to Smart HVAC Analytics!',
