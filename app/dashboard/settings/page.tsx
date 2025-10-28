@@ -349,7 +349,16 @@ export default function SettingsPage() {
             </ul>
           </div>
 
-          {profile?.subscription_end && profile?.stripe_customer_id && (
+          {profile?.billing_status === 'trialing' && profile?.trial_end_date ? (
+            <>
+              <div className="text-sm text-muted-foreground pt-2">
+                <strong>Trial Ends:</strong> {getRenewalDate(profile.trial_end_date)}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <strong>Days Left in Trial:</strong> {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+              </div>
+            </>
+          ) : profile?.subscription_end && profile?.stripe_customer_id && profile?.billing_status === 'active' ? (
             <>
               <div className="text-sm text-muted-foreground pt-2">
                 <strong>Renewal Date:</strong> {getRenewalDate(profile.subscription_end)}
@@ -358,7 +367,7 @@ export default function SettingsPage() {
                 <strong>Days Until Renewal:</strong> {Math.max(0, differenceInDays(new Date(profile.subscription_end), new Date()))} days
               </div>
             </>
-          )}
+          ) : null}
 
           {billingStatus?.isInGracePeriod && (
             <div className="text-sm text-orange-600 dark:text-orange-400 pt-2 font-medium">
