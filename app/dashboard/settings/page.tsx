@@ -318,12 +318,20 @@ export default function SettingsPage() {
                 {getPlanDisplayName(profile?.plan_tier)}
               </p>
               <p className="text-sm text-muted-foreground">
-                {profile?.billing_status === 'trialing' && daysLeft > 0 ? (
-                  <span>{daysLeft} days left in trial</span>
+                {profile?.billing_status === 'trialing' ? (
+                  daysLeft > 0 ? (
+                    <span>{daysLeft} days left in trial</span>
+                  ) : profile?.trial_end_date ? (
+                    <span>Trial ending soon</span>
+                  ) : (
+                    <span>14-day free trial active</span>
+                  )
                 ) : profile?.billing_status === 'active' ? (
                   <span>Active subscription</span>
                 ) : profile?.billing_status === 'past_due' ? (
                   <span className="text-red-600">Payment past due</span>
+                ) : profile?.billing_status === 'grace_period' ? (
+                  <span className="text-orange-600">Grace period - add payment method</span>
                 ) : (
                   <span>No active subscription</span>
                 )}
