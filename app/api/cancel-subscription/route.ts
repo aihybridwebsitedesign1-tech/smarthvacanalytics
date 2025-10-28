@@ -5,7 +5,6 @@ import Stripe from 'stripe';
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await req.json();
-    const authHeader = req.headers.get('authorization');
 
     if (!userId) {
       return NextResponse.json(
@@ -14,36 +13,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: 'Authorization header required' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Missing Supabase configuration');
+    if (!supabaseUrl) {
+      console.error('Missing Supabase URL');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    // Use service role key if available, otherwise anon key
+    const supabaseKey = supabaseServiceKey || supabaseAnonKey;
+
+    if (!supabaseKey) {
+      console.error('Missing Supabase keys');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
       },
-    });
-
-    // Set the auth session using the provided token
-    await supabase.auth.setSession({
-      access_token: token,
-      refresh_token: '',
     });
 
     console.log('Fetching profile for userId:', userId);
