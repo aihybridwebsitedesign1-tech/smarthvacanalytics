@@ -28,10 +28,6 @@ export interface Database {
           stripe_customer_id: string | null
           subscription_start: string | null
           subscription_end: string | null
-          grace_period_end: string | null
-          account_status: string | null
-          last_payment_reminder: string | null
-          trial_days: number
           created_at: string
           updated_at: string
         }
@@ -48,10 +44,6 @@ export interface Database {
           trial_start?: string
           trial_expired?: boolean
           demo_mode?: boolean
-          grace_period_end?: string | null
-          account_status?: string | null
-          last_payment_reminder?: string | null
-          trial_days?: number
           created_at?: string
           updated_at?: string
         }
@@ -68,15 +60,6 @@ export interface Database {
           trial_start?: string
           trial_expired?: boolean
           demo_mode?: boolean
-          billing_status?: string | null
-          subscription_id?: string | null
-          stripe_customer_id?: string | null
-          subscription_start?: string | null
-          subscription_end?: string | null
-          grace_period_end?: string | null
-          account_status?: string | null
-          last_payment_reminder?: string | null
-          trial_days?: number
           created_at?: string
           updated_at?: string
         }

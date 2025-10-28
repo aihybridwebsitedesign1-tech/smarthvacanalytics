@@ -78,14 +78,45 @@ export default function SignupPage() {
           console.error('Demo data seeding error:', seedError);
         });
 
-        toast({
-          title: 'Account Created Successfully!',
-          description: 'Welcome to your 14-day free trial. Redirecting to dashboard...',
+        const planConfig = {
+          starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+          growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PRICE_ID,
+          pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+        };
+
+        const priceId = planConfig[planTier as keyof typeof planConfig];
+
+        if (!priceId) {
+          toast({
+            title: 'Configuration Error',
+            description: 'Stripe is not properly configured. Please contact support.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            priceId,
+            userId: authData.user.id,
+            email: authData.user.email,
+          }),
         });
 
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create checkout session');
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('No checkout URL returned');
+        }
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -104,7 +135,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-heading font-bold mb-2">Get Started</h1>
           <p className="text-muted-foreground">
-            Start your 14-day free trial. No credit card required.
+            Choose your plan and start managing your HVAC business today.
           </p>
         </div>
 
@@ -122,15 +153,11 @@ export default function SignupPage() {
 
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-4 rounded-xl shadow-lg max-w-4xl mx-auto text-center mb-6">
-              <p className="text-2xl font-bold mb-1">14-Day Free Trial</p>
-              <p className="text-green-50">No Credit Card Required • Cancel Anytime • Full Access to All Features</p>
-            </div>
             <Card className="max-w-4xl mx-auto">
               <CardHeader>
                 <CardTitle className="text-2xl font-heading text-center">Choose Your Plan</CardTitle>
                 <CardDescription className="text-center">
-                  Select the plan that fits your business needs. All plans include a 14-day free trial.
+                  Select the plan that fits your business needs
                 </CardDescription>
               </CardHeader>
               <CardContent>

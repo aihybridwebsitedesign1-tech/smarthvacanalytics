@@ -5,28 +5,6 @@ export async function seedDemoData(userId: string) {
   const technicianNames = ['Mike Johnson', 'Sarah Williams', 'Tom Martinez'];
   const client: any = supabase;
 
-  // Wait for profile to be fully created (with retries)
-  let profileExists = false;
-  for (let i = 0; i < 10; i++) {
-    const { data: profile } = await client
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (profile) {
-      profileExists = true;
-      break;
-    }
-
-    // Wait before retry (exponential backoff)
-    await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
-  }
-
-  if (!profileExists) {
-    throw new Error('Profile not created yet. Please try again in a moment.');
-  }
-
   const technicians = await Promise.all(
     technicianNames.map(async (name) => {
       const { data, error } = await client

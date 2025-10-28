@@ -26,24 +26,14 @@ export async function POST(req: NextRequest) {
 
     if (!profile?.stripe_customer_id) {
       return NextResponse.json(
-        {
-          error: 'No Stripe customer found',
-          message: 'Please complete billing setup first by clicking "Complete Billing Setup".'
-        },
+        { error: 'No Stripe customer found' },
         { status: 404 }
-      );
-    }
-
-    if (!stripe) {
-      return NextResponse.json(
-        { error: 'Stripe is not configured. Please set up your Stripe API keys.' },
-        { status: 500 }
       );
     }
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/settings`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings`,
     });
 
     return NextResponse.json({ url: session.url });
