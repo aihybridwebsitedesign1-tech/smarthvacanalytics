@@ -34,11 +34,16 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
       },
+    });
+
+    // Set the auth session using the provided token
+    await supabase.auth.setSession({
+      access_token: token,
+      refresh_token: '',
     });
 
     console.log('Fetching profile for userId:', userId);
@@ -72,7 +77,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (profile.billing_status === 'trialing' && !profile.stripe_customer_id) {
-      const { error } = await supabase
+      console.log('Canceling free trial for user:', userId);
+
+      const { data: updateData, error: updateError } = await supabase
         .from('profiles')
         .update({
           billing_status: 'cancelled',
@@ -80,9 +87,18 @@ export async function POST(req: NextRequest) {
           subscription_end: new Date().toISOString(),
           account_status: 'suspended',
         })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Failed to update profile:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to cancel trial: ' + updateError.message },
+          { status: 500 }
+        );
+      }
+
+      console.log('Trial cancelled successfully:', updateData);
 
       return NextResponse.json({
         success: true,
